@@ -3,8 +3,8 @@ open System.IO
 
 type Point2D = { X: int; Y: int }
 type Cell = { C : char; Visited : bool }
-let file = "example.txt" // part 1: ?, part 2: ?
-// let file = "input.txt" // part 1: ?, part 2: ?
+// let file = "example.txt" // part 1: 1930L, part 2: ?
+let file = "input.txt" // part 1: 1396298L, part 2: ?
 let data = file |> File.ReadAllLines |> Array.map (fun s -> Seq.map (fun c -> {C = c; Visited = false}) s |> Seq.toArray) |> array2D
 
 let stepsA c (p: Point2D)= 
@@ -33,8 +33,12 @@ let rec Area (p: Point2D) =
         | _ -> data[pi.X, pi.Y] <- {data[pi.X, pi.Y] with Visited = true}; steps pi |> Seq.fold (fun acc f -> acc @ Area' c f r) [] |> (fun l -> l @ [pi])
     Area' data[p.X, p.Y].C p []
 
+let perimeter c (l: Point2D list) = l |> List.fold (fun acc p -> acc + (steps p |> Seq.fold (fun acc2 elem -> acc2 + match List.exists (fun n -> n = elem) l with | true -> 0L | false -> 1L) 0L ) ) 0L
+
 // data |> printfn "%A"
-let areaTypes = seq { for y in 0 .. Array2D.length1 data - 1 do for x in 0 .. Array2D.length2 data - 1 do if not data[x,y].Visited then yield data[x,y].C, Area {X = x; Y = y} |> List.length}
+let areaTypes = seq { for y in 0 .. Array2D.length1 data - 1 do for x in 0 .. Array2D.length2 data - 1 do if not data[x,y].Visited then yield data[x,y].C, Area {X = x; Y = y}}
 // steps { X = 0; Y = 0 } |> Seq.iter (fun p -> printfn "%A" p)
 //Area { X = 0; Y = 0 } |> List.sortBy _.Y  |> List.length |> printfn "Part 1: %A"
-areaTypes |> Seq.iter (printfn "%A")
+// areaTypes |> Seq.iter (fun t -> printfn "%c %A" (fst t) (snd t |> List.length))
+//areaTypes |> Seq.iter (fun t -> (fst t, (snd t |> List.length |> int64), perimeter (fst t) (snd t)) |> printfn "Part 1: %A")
+areaTypes |> Seq.map (fun t -> (snd t |> List.length |> int64) * perimeter (fst t) (snd t)) |> Seq.sum |> printfn "Part 1: %A"
